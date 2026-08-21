@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AnalyZ — L'analyse de données, sans friction</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root{
+  --ink:#0A0E12;
+  --panel:#10161F;
+  --panel-2:#141B26;
+  --line:#232C39;
+  --text:#E9EEF3;
+  --muted:#8B96A6;
+  --brand:#5EEAD4;
+  --brand-dim:#2F6E64;
+  --excel:#22C55E;
+  --python:#38BDF8;
+  --sql:#F59E0B;
+  --radius:10px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:'Inter', sans-serif;
+  line-height:1.5;
+  overflow-x:hidden;
+}
+h1,h2,h3,.display{ font-family:'Space Grotesk', sans-serif; letter-spacing:-0.02em; }
+.mono{ font-family:'JetBrains Mono', monospace; }
+a{ color:inherit; text-decoration:none; }
+img{max-width:100%; display:block;}
+.wrap{ max-width:1240px; margin:0 auto; padding:0 32px; }
+section{ padding:110px 0; position:relative; }
+.eyebrow{
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--brand);
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:18px;
+}
+.eyebrow::before{ content:""; width:22px; height:1px; background:var(--brand); display:inline-block; }
+.section-title{ font-size:clamp(28px,3.6vw,44px); font-weight:600; margin-bottom:16px; max-width:720px; }
+.section-sub{ color:var(--muted); font-size:16px; max-width:560px; margin-bottom:56px; }
+
+/* ---------- Header ---------- */
+header{
+  position:sticky; top:0; z-index:100;
+  background:rgba(10,14,18,.85);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.header-inner{
+  max-width:1240px; margin:0 auto; padding:16px 32px;
+  display:flex; align-items:center; justify-content:space-between; gap:24px;
+}
+.logo{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:21px; }
+.logo-mark{
+  width:30px; height:30px; border-radius:8px;
+  background:linear-gradient(135deg, var(--brand), var(--python));
+  display:flex; align-items:center; justify-content:center;
+  color:#04120F; font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px;
+  flex-shrink:0;
+}
+.logo span.z{ color:var(--brand); }
+nav.main-nav{ display:flex; gap:36px; }
+nav.main-nav a{
+  font-size:14.5px; color:var(--muted); font-weight:500;
+  transition:color .2s;
+  position:relative;
+}
+nav.main-nav a:hover{ color:var(--text); }
+nav.main-nav a::after{
+  content:""; position:absolute; left:0; bottom:-6px; width:0; height:1.5px;
+  background:var(--brand); transition:width .25s;
+}
+nav.main-nav a:hover::after{ width:100%; }
+
+/* Auth widget — bordered rectangle, filled fields */
+.auth-box{
+  display:flex; align-items:center; gap:8px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:6px;
+  background:var(--panel);
+}
+.auth-field{
+  display:flex; flex-direction:column;
+  border:1px solid var(--brand-dim);
+  border-radius:7px;
+  padding:5px 10px;
+  background:rgba(94,234,212,.06);
+  min-width:150px;
+}
+.auth-field label{ font-size:9px; text-transform:uppercase; letter-spacing:.08em; color:var(--brand); font-family:'JetBrains Mono',monospace; }
+.auth-field input{
+  background:transparent; border:none; color:var(--text); font-size:13px;
+  font-family:'JetBrains Mono',monospace; outline:none; padding:1px 0; width:100%;
+}
+.auth-field.pw{ border-color:#3d5a80; background:rgba(56,189,248,.06); }
+.auth-field.pw label{ color:var(--python); }
+.btn{
+  border-radius:7px; border:1px solid transparent; padding:9px 16px;
+  font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap;
+  font-family:'Inter',sans-serif; transition:transform .15s, opacity .15s;
+}
+.btn:hover{ transform:translateY(-1px); }
+.btn-primary{ background:var(--brand); color:#04120F; }
+.btn-ghost{ background:transparent; color:var(--text); border:1px solid var(--line); }
+.btn-outline-sql{ background:transparent; border:1px solid var(--sql); color:var(--sql); }
+
+@media(max-width: 980px){
+  nav.main-nav{ display:none; }
+  .auth-field{ min-width:110px; }
+}
+
+/* ---------- Hero / Overview ---------- */
+#overview{ padding-top:90px; }
+.hero-top{ text-align:center; max-width:760px; margin:0 auto 70px; }
+.hero-top h1{ font-size:clamp(34px,5.4vw,58px); font-weight:700; margin-bottom:20px; }
+.hero-top h1 em{ font-style:normal; color:var(--brand); }
+.hero-top p{ color:var(--muted); font-size:17px; }
+
+.dash-grid{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:24px;
+}
+@media(max-width:900px){ .dash-grid{ grid-template-columns:1fr; } }
+
+.dash-card{
+  background:var(--panel); border:1px solid var(--line); border-radius:16px;
+  overflow:hidden; display:flex; flex-direction:column;
+  transition:border-color .25s, transform .25s;
+}
+.dash-card:hover{ transform:translateY(-4px); }
+.dash-card.excel:hover{ border-color:var(--excel); }
+.dash-card.python:hover{ border-color:var(--python); }
+.dash-card.sql:hover{ border-color:var(--sql); }
+
+.dash-stage{
+  height:220px; position:relative; padding:18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.02), transparent 40%),
+    var(--panel-2);
+  border-bottom:1px solid var(--line);
+}
+.tag{
+  position:absolute; top:14px; left:14px; z-index:3;
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.08em;
+  padding:4px 9px; border-radius:5px; text-transform:uppercase; font-weight:700;
+}
+.tag.excel{ background:rgba(34,197,94,.15); color:var(--excel); }
+.tag.python{ background:rgba(56,189,248,.15); color:var(--python); }
+.tag.sql{ background:rgba(245,158,11,.15); color:var(--sql); }
+
+/* Excel mock */
+.excel-grid{ display:grid; grid-template-columns:34px repeat(5,1fr); grid-template-rows:22px repeat(6,1fr); gap:1px; height:100%; margin-top:26px; background:var(--line); border:1px solid var(--line); border-radius:6px; overflow:hidden;}
+.excel-grid .cell{ background:#0D1319; font-size:9.5px; color:var(--muted); display:flex; align-items:center; justify-content:flex-end; padding-right:5px; font-family:'JetBrains Mono',monospace; }
+.excel-grid .head{ background:#132018; color:var(--excel); justify-content:center; font-weight:700; }
+.excel-grid .bar{ background:linear-gradient(90deg, rgba(34,197,94,.7), rgba(34,197,94,.15)); animation:growX 2.6s ease-in-out infinite alternate; transform-origin:left; }
+.excel-grid .bar:nth-child(odd){ animation-delay:.3s; }
+@keyframes growX{ from{ transform:scaleX(.35);} to{ transform:scaleX(1);} }
+
+/* Python mock */
+.py-chart{ display:flex; align-items:flex-end; gap:7px; height:100%; padding-top:24px; }
+.py-chart .col{ flex:1; background:linear-gradient(180deg, var(--python), #1a5580); border-radius:4px 4px 0 0; animation:barPulse 2.4s ease-in-out infinite; }
+.py-chart .col:nth-child(1){ animation-delay:0s;} .py-chart .col:nth-child(2){ animation-delay:.15s;}
+.py-chart .col:nth-child(3){ animation-delay:.3s;} .py-chart .col:nth-child(4){ animation-delay:.45s;}
+.py-chart .col:nth-child(5){ animation-delay:.6s;} .py-chart .col:nth-child(6){ animation-delay:.75s;}
+.py-chart .col:nth-child(7){ animation-delay:.9s;}
+@keyframes barPulse{ 0%,100%{ transform:scaleY(.55);} 50%{ transform:scaleY(1);} }
+.py-line{ position:absolute; inset:52px 18px 18px 18px; pointer-events:none; }
+
+/* SQL mock */
+.sql-term{ background:#0B1016; border:1px solid var(--line); border-radius:7px; height:100%; margin-top:26px; padding:12px; font-family:'JetBrains Mono',monospace; font-size:11px; color:#c9d5e0; overflow:hidden;}
+.sql-term .l1{ color:var(--sql); }
+.sql-term .l2{ color:var(--muted); }
+.sql-term .typing{ overflow:hidden; white-space:nowrap; border-right:2px solid var(--sql); width:0; animation:typing 3.2s steps(34) infinite; }
+@keyframes typing{ 0%{width:0;} 55%{width:34ch;} 90%{width:34ch;} 100%{width:0;} }
+.sql-rows{ margin-top:10px; opacity:.85; }
+.sql-rows div{ display:flex; gap:14px; color:#7d8ba0; animation:fadeRow 3.2s ease-in-out infinite; }
+.sql-rows div:nth-child(1){ animation-delay:.2s;} .sql-rows div:nth-child(2){ animation-delay:.5s;} .sql-rows div:nth-child(3){ animation-delay:.8s;}
+@keyframes fadeRow{ 0%,20%{opacity:0; transform:translateX(-4px);} 35%,80%{opacity:.85; transform:translateX(0);} 100%{opacity:.85;} }
+
+.dash-body{ padding:22px; display:flex; flex-direction:column; gap:12px; flex:1; }
+.dash-body h3{ font-size:18px; }
+.dash-body p{ color:var(--muted); font-size:14px; }
+.dash-cta{ margin-top:auto; font-size:13.5px; font-weight:600; display:inline-flex; align-items:center; gap:6px; }
+.dash-cta.excel{ color:var(--excel); } .dash-cta.python{ color:var(--python); } .dash-cta.sql{ color:var(--sql); }
+
+/* ---------- Solutions ---------- */
+#solutions{ background:var(--panel); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.tool-tabs{ display:flex; gap:10px; margin-bottom:36px; flex-wrap:wrap; }
+.tool-tab{
+  border:1px solid var(--line); background:var(--panel-2); color:var(--muted);
+  padding:11px 20px; border-radius:9px; font-weight:600; font-size:14px; cursor:pointer;
+  display:flex; align-items:center; gap:8px; transition:all .2s;
+}
+.tool-tab .dot{ width:8px; height:8px; border-radius:50%; }
+.tool-tab[data-tool="excel"] .dot{ background:var(--excel); }
+.tool-tab[data-tool="python"] .dot{ background:var(--python); }
+.tool-tab[data-tool="sql"] .dot{ background:var(--sql); }
+.tool-tab.active{ color:var(--text); border-color:currentColor; background:rgba(255,255,255,.03); }
+.tool-tab[data-tool="excel"].active{ border-color:var(--excel); }
+.tool-tab[data-tool="python"].active{ border-color:var(--python); }
+.tool-tab[data-tool="sql"].active{ border-color:var(--sql); }
+
+.tool-panel{ display:none; }
+.tool-panel.active{ display:grid; grid-template-columns:repeat(2,1fr); gap:22px; }
+@media(max-width:800px){ .tool-panel.active{ grid-template-columns:1fr; } }
+
+.dataset-card{
+  background:var(--panel-2); border:1px solid var(--line); border-radius:14px; padding:24px;
+  display:flex; flex-direction:column; gap:12px;
+}
+.dataset-card .meta{ display:flex; gap:8px; flex-wrap:wrap; }
+.pill{ font-size:11px; font-family:'JetBrains Mono',monospace; padding:3px 9px; border-radius:20px; border:1px solid var(--line); color:var(--muted); }
+.dataset-card h4{ font-size:17px; }
+.dataset-card p{ color:var(--muted); font-size:13.5px; }
+.run-btn{
+  margin-top:8px; align-self:flex-start; padding:9px 18px; border-radius:8px; font-weight:700; font-size:13px;
+  border:none; cursor:pointer; color:#04120F;
+}
+.run-btn.excel{ background:var(--excel); }
+.run-btn.python{ background:var(--python); }
+.run-btn.sql{ background:var(--sql); }
+
+/* ---------- Ressources ---------- */
+.res-block{ margin-bottom:64px; }
+.res-block:last-child{ margin-bottom:0; }
+.res-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:8px;}
+.res-head h3{ font-size:22px; }
+.res-head span{ color:var(--muted); font-size:13px; font-family:'JetBrains Mono',monospace; }
+.res-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+@media(max-width:900px){ .res-grid{ grid-template-columns:1fr 1fr; } }
+@media(max-width:600px){ .res-grid{ grid-template-columns:1fr; } }
+.res-card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px; display:flex; flex-direction:column; gap:12px; }
+.res-icon{ width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+.res-card h4{ font-size:15.5px; }
+.res-card p{ color:var(--muted); font-size:13px; }
+.icon-teams{ background:rgba(94,234,212,.12); color:var(--brand); }
+.icon-partners{ background:rgba(56,189,248,.12); color:var(--python); }
+.icon-training{ background:rgba(245,158,11,.12); color:var(--sql); }
+
+/* ---------- A propos ---------- */
+#apropos{ background:var(--panel); border-top:1px solid var(--line); }
+.story{ display:grid; grid-template-columns:1.1fr .9fr; gap:56px; }
+@media(max-width:900px){ .story{ grid-template-columns:1fr; } }
+.story p{ color:var(--muted); font-size:15.5px; margin-bottom:16px; }
+.story strong{ color:var(--text); }
+.timeline{ border-left:1px solid var(--line); padding-left:26px; display:flex; flex-direction:column; gap:28px; }
+.tl-item{ position:relative; }
+.tl-item::before{ content:""; position:absolute; left:-31px; top:3px; width:9px; height:9px; border-radius:50%; background:var(--brand); box-shadow:0 0 0 4px rgba(94,234,212,.15); }
+.tl-item .tl-year{ font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--brand); margin-bottom:4px; }
+.tl-item h4{ font-size:15.5px; margin-bottom:4px; }
+.tl-item p{ color:var(--muted); font-size:13.5px; }
+
+/* ---------- Footer ---------- */
+footer{ background:#070A0D; border-top:1px solid var(--line); padding:60px 0 28px; }
+.foot-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px; margin-bottom:48px; }
+@media(max-width:800px){ .foot-grid{ grid-template-columns:1fr 1fr; } }
+.foot-grid h5{ font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:16px; font-family:'JetBrains Mono',monospace; }
+.foot-grid ul{ list-style:none; display:flex; flex-direction:column; gap:10px; }
+.foot-grid ul a{ color:#B7C0CC; font-size:14px; }
+.foot-grid ul a:hover{ color:var(--brand); }
+.foot-brand p{ color:var(--muted); font-size:14px; max-width:280px; margin-top:12px; }
+.foot-bottom{ border-top:1px solid var(--line); padding-top:24px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; color:var(--muted); font-size:12.5px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo"><div class="logo-mark">AZ</div>Analy<span class="z">Z</span></div>
+    <nav class="main-nav">
+      <a href="#overview">Overview</a>
+      <a href="#solutions">Solutions</a>
+      <a href="#ressources">Ressources</a>
+      <a href="#apropos">À propos</a>
+    </nav>
+    <div class="auth-box">
+      <div class="auth-field">
+        <label>Email</label>
+        <input type="text" value="prenom.nom@analyz.io" readonly>
+      </div>
+      <div class="auth-field pw">
+        <label>Mot de passe</label>
+        <input type="password" value="analyz2026">
+      </div>
+      <button class="btn btn-ghost">Connexion</button>
+      <button class="btn btn-primary">S'inscrire</button>
+    </div>
+  </div>
+</header>
+
+<!-- ================= OVERVIEW ================= -->
+<section id="overview">
+  <div class="wrap">
+    <div class="hero-top">
+      <div class="eyebrow" style="justify-content:center;">Plateforme d'analyse de données</div>
+      <h1>Vos données parlent trois langues.<br><em>AnalyZ</em> les comprend toutes.</h1>
+      <p>Excel, Python et SQL réunis dans un seul espace de travail — pour explorer, croiser et visualiser vos données sans changer d'outil ni de logique.</p>
+    </div>
+
+    <div class="dash-grid">
+
+      <!-- Excel -->
+      <div class="dash-card excel">
+        <div class="dash-stage">
+          <span class="tag excel">Excel</span>
+          <div class="excel-grid">
+            <div class="cell head"></div>
+            <div class="cell head">Jan</div><div class="cell head">Fév</div><div class="cell head">Mar</div><div class="cell head">Avr</div><div class="cell head">Mai</div>
+            <div class="cell head">CA</div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div>
+            <div class="cell head">Marge</div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div>
+            <div class="cell head">Coûts</div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div>
+            <div class="cell head">Stock</div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div>
+            <div class="cell head">Panier</div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div>
+            <div class="cell head">Trafic</div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div><div class="cell bar"></div>
+          </div>
+        </div>
+        <div class="dash-body">
+          <h3>Tableaux croisés qui se construisent tout seuls</h3>
+          <p>Glissez vos colonnes, AnalyZ génère le TCD, les mises en forme conditionnelles et les totaux — prêt à présenter en réunion dans la minute.</p>
+          <a class="dash-cta excel" href="#solutions">Essayer sur Excel →</a>
+        </div>
+      </div>
+
+      <!-- Python -->
+      <div class="dash-card python">
+        <div class="dash-stage">
+          <span class="tag python">Python</span>
+          <div class="py-chart">
+            <div class="col" style="height:40%"></div>
+            <div class="col" style="height:65%"></div>
+            <div class="col" style="height:50%"></div>
+            <div class="col" style="height:85%"></div>
+            <div class="col" style="height:60%"></div>
+            <div class="col" style="height:95%"></div>
+            <div class="col" style="height:70%"></div>
+          </div>
+        </div>
+        <div class="dash-body">
+          <h3>Des notebooks qui pensent à votre place</h3>
+          <p>Pandas, Matplotlib et scikit-learn préconfigurés : nettoyez, modélisez et visualisez vos jeux de données en quelques cellules, sans setup fastidieux.</p>
+          <a class="dash-cta python" href="#solutions">Essayer sur Python →</a>
+        </div>
+      </div>
+
+      <!-- SQL -->
+      <div class="dash-card sql">
+        <div class="dash-stage">
+          <span class="tag sql">SQL</span>
+          <div class="sql-term">
+            <div class="l1 typing">SELECT region, SUM(ventes)</div>
+            <div class="l2">FROM commandes GROUP BY region;</div>
+            <div class="sql-rows">
+              <div><span>Nord</span><span>128 430</span></div>
+              <div><span>Sud</span><span>96 210</span></div>
+              <div><span>Est</span><span>74 980</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="dash-body">
+          <h3>Des requêtes lisibles, des réponses immédiates</h3>
+          <p>Écrivez une requête ou laissez AnalyZ la suggérer à partir de votre question en langage naturel — les résultats s'affichent en tableau interactif.</p>
+          <a class="dash-cta sql" href="#solutions">Essayer sur SQL →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= SOLUTIONS ================= -->
+<section id="solutions">
+  <div class="wrap">
+    <div class="eyebrow">Solutions</div>
+    <h2 class="section-title">Choisissez votre outil, lancez une vraie analyse</h2>
+    <p class="section-sub">Chaque outil est livré avec deux jeux de données prêts à l'emploi. Sélectionnez, lancez, observez le résultat.</p>
+
+    <div class="tool-tabs">
+      <button class="tool-tab active" data-tool="excel"><span class="dot"></span>Excel</button>
+      <button class="tool-tab" data-tool="python"><span class="dot"></span>Python</button>
+      <button class="tool-tab" data-tool="sql"><span class="dot"></span>SQL</button>
+    </div>
+
+    <div class="tool-panel active" data-panel="excel">
+      <div class="dataset-card">
+        <div class="meta"><span class="pill">.xlsx</span><span class="pill">2 400 lignes</span><span class="pill">Retail</span></div>
+        <h4>Ventes retail — 12 boutiques (2025)</h4>
+        <p>Chiffre d'affaires, marge et volume par boutique et par mois. Idéal pour un TCD croisé région × produit.</p>
+        <button class="run-btn excel">Lancer l'analyse Excel</button>
+      </div>
+      <div class="dataset-card">
+        <div class="meta"><span class="pill">.xlsx</span><span class="pill">860 lignes</span><span class="pill">RH</span></div>
+        <h4>Effectifs & absentéisme</h4>
+        <p>Suivi mensuel des effectifs, congés et absences par service — pour construire un tableau de bord RH type.</p>
+        <button class="run-btn excel">Lancer l'analyse Excel</button>
+      </div>
+    </div>
+
+    <div class="tool-panel" data-panel="python">
+      <div class="dataset-card">
+        <div class="meta"><span class="pill">.csv</span><span class="pill">50k lignes</span><span class="pill">E-commerce</span></div>
+        <h4>Comportement d'achat en ligne</h4>
+        <p>Sessions, paniers et conversions sur 6 mois. Parfait pour un clustering clients avec scikit-learn.</p>
+        <button class="run-btn python">Lancer l'analyse Python</button>
+      </div>
+      <div class="dataset-card">
+        <div class="meta"><span class="pill">.csv</span><span class="pill">18k lignes</span><span class="pill">Météo</span></div>
+        <h4>Séries temporelles climatiques</h4>
+        <p>Températures et précipitations horaires sur 2 ans, pour une prévision de série temporelle avec pandas.</p>
+        <button class="run-btn python">Lancer l'analyse Python</button>
+      </div>
+    </div>
+
+    <div class="tool-panel" data-panel="sql">
+      <div class="dataset-card">
+        <div class="meta"><span class="pill">PostgreSQL</span><span class="pill">8 tables</span><span class="pill">Logistique</span></div>
+        <h4>Base commandes & livraisons</h4>
+        <p>Schéma relationnel commandes / clients / entrepôts, pour pratiquer les jointures et fenêtres analytiques.</p>
+        <button class="run-btn sql">Lancer l'analyse SQL</button>
+      </div>
+      <div class="dataset-card">
+        <div class="meta"><span class="pill">PostgreSQL</span><span class="pill">5 tables</span><span class="pill">Finance</span></div>
+        <h4>Transactions bancaires anonymisées</h4>
+        <p>Historique de transactions pour détecter des anomalies via requêtes agrégées et sous-requêtes.</p>
+        <button class="run-btn sql">Lancer l'analyse SQL</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= RESSOURCES ================= -->
+<section id="ressources">
+  <div class="wrap">
+    <div class="eyebrow">Ressources</div>
+    <h2 class="section-title">Tout ce qu'il faut pour progresser</h2>
+    <p class="section-sub">L'équipe qui construit AnalyZ, les partenaires qui l'entourent, et les formations pour aller plus loin.</p>
+
+    <div class="res-block">
+      <div class="res-head"><h3>Teams</h3><span>4 personnes clés</span></div>
+      <div class="res-grid">
+        <div class="res-card"><div class="res-icon icon-teams">◆</div><h4>Équipe Produit</h4><p>Conçoit les parcours d'analyse et l'ergonomie des trois environnements.</p></div>
+        <div class="res-card"><div class="res-icon icon-teams">▲</div><h4>Équipe Data Engineering</h4><p>Maintient les connecteurs Excel, Python et SQL et la qualité des jeux de données.</p></div>
+        <div class="res-card"><div class="res-icon icon-teams">●</div><h4>Équipe Support</h4><p>Accompagne les utilisateurs dans leurs premières analyses, du diagnostic à la restitution.</p></div>
+      </div>
+    </div>
+
+    <div class="res-block">
+      <div class="res-head"><h3>Partenaires</h3><span>Écosystème technique</span></div>
+      <div class="res-grid">
+        <div class="res-card"><div class="res-icon icon-partners">◈</div><h4>Fournisseurs cloud</h4><p>Infrastructure de calcul pour exécuter vos notebooks et requêtes à grande échelle.</p></div>
+        <div class="res-card"><div class="res-icon icon-partners">◇</div><h4>Éditeurs de données</h4><p>Jeux de données sectoriels certifiés, mis à jour et prêts à l'analyse.</p></div>
+        <div class="res-card"><div class="res-icon icon-partners">◆</div><h4>Écoles & universités</h4><p>Programmes académiques intégrant AnalyZ dans leurs cursus data.</p></div>
+      </div>
+    </div>
+
+    <div class="res-block">
+      <div class="res-head"><h3>Formations</h3><span>Du niveau débutant à expert</span></div>
+      <div class="res-grid">
+        <div class="res-card"><div class="res-icon icon-training">▣</div><h4>Excel pour l'analyse</h4><p>TCD, formules avancées et mise en forme conditionnelle en 6 modules.</p></div>
+        <div class="res-card"><div class="res-icon icon-training">▤</div><h4>Python pour la data</h4><p>Pandas, visualisation et premiers modèles prédictifs, projet fil rouge inclus.</p></div>
+        <div class="res-card"><div class="res-icon icon-training">▥</div><h4>SQL de A à Z</h4><p>Des requêtes simples aux fonctions fenêtrées, avec exercices sur bases réelles.</p></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= A PROPOS ================= -->
+<section id="apropos">
+  <div class="wrap">
+    <div class="eyebrow">À propos</div>
+    <h2 class="section-title">Une idée née d'une frustration simple</h2>
+
+    <div class="story">
+      <div>
+        <p><strong>AnalyZ est né d'un constat partagé par toute son équipe fondatrice :</strong> chaque analyste jonglait entre trois mondes qui ne se parlaient jamais. Excel pour la rapidité, Python pour la puissance, SQL pour l'accès aux données brutes — trois outils, trois logiques, trois fenêtres ouvertes en permanence, et beaucoup de temps perdu à recopier des résultats d'un environnement à l'autre.</p>
+        <p>Le projet a commencé comme un script personnel, pensé pour ouvrir une même base de données dans les trois formats à la fois. Ce petit outil interne, partagé entre collègues, a vite dépassé son usage initial : il fallait une interface, une pédagogie, une manière d'apprendre en faisant. C'est devenu AnalyZ.</p>
+        <p>Aujourd'hui, la plateforme veut rester fidèle à cette intuition de départ : <strong>ne jamais forcer un analyste à choisir son outil</strong>, mais lui donner un espace où Excel, Python et SQL avancent ensemble, avec la même donnée, la même exigence de clarté.</p>
+        <p>Le développement futur d'AnalyZ suit trois axes : l'ouverture à de nouveaux langages d'analyse (R, DAX), l'intégration de connecteurs vers les outils métiers existants, et la construction d'un véritable parcours de certification reconnu par les entreprises partenaires.</p>
+      </div>
+
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-year">2023</div>
+          <h4>Le script interne</h4>
+          <p>Premier prototype pour croiser un même jeu de données dans trois formats.</p>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2024</div>
+          <h4>Ouverture bêta</h4>
+          <p>Premiers utilisateurs externes, premiers jeux de données pédagogiques.</p>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2025</div>
+          <h4>Espace Formations</h4>
+          <p>Lancement des parcours Excel, Python et SQL avec suivi de progression.</p>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">2026 →</div>
+          <h4>Vers la certification</h4>
+          <p>Nouveaux langages, connecteurs métiers et certification reconnue en préparation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="logo"><div class="logo-mark">AZ</div>Analy<span class="z" style="color:var(--brand)">Z</span></div>
+        <p>La plateforme qui réunit Excel, Python et SQL dans un seul espace d'analyse de données.</p>
+      </div>
+      <div>
+        <h5>Navigation</h5>
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#solutions">Solutions</a></li>
+          <li><a href="#ressources">Ressources</a></li>
+          <li><a href="#apropos">À propos</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Ressources</h5>
+        <ul>
+          <li><a href="#ressources">Teams</a></li>
+          <li><a href="#ressources">Partenaires</a></li>
+          <li><a href="#ressources">Formations</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Contact</h5>
+        <ul>
+          <li>contact@analyz.io</li>
+          <li>+261 38 43 633 29</li>
+          <li>12 rue des Données, Mahajanga, Madagascar</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 AnalyZ SAS. Tous droits réservés.</span>
+      <span>Mentions légales · CGU · Politique de confidentialité</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.tool-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tool-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tool-panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelector('.tool-panel[data-panel="'+tab.dataset.tool+'"]').classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>
